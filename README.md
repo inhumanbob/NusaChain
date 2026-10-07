@@ -1,73 +1,33 @@
-HEAD
-# CodeIgniter 4 Application Starter
-
-## What is CodeIgniter?
-
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
-
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
-
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
-
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
-
-## Installation & updates
-
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
-
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
-
-## Setup
-
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
-
-## Important Change with index.php
-
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
-
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
-
-**Please** read the user guide for a better explanation of how CI4 works!
-
-## Repository Management
-
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
-
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
-
-## Server Requirements
-
-PHP version 8.2 or higher is required, with the following extensions installed:
-
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
-
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - The end of life date for PHP 8.1 was December 31, 2025.
-> - If you are still using below PHP 8.2, you should upgrade immediately.
-> - The end of life date for PHP 8.2 will be December 31, 2026.
-
-Additionally, make sure that the following extensions are enabled in your PHP:
-
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
-
 # NusaChain
-f5240e7c694362a87c11545ccc3062a387b319dd
+
+NusaChain adalah sebuah Supply Chain Enterprise Application berbasis web yang berfungsi sebagai platform konsolidasi logistik B2B. 
+
+Platform ini dirancang untuk memecahkan masalah mahalnya ongkos kirim eceran *Less than Container Load* (LCL) dan ketidakmampuan UMKM untuk memenuhi *Minimum Order Quantity* (MOQ) yang diminta oleh pembeli global . NusaChain bekerja dengan cara menggabungkan kapasitas produksi dari beberapa UMKM menjadi satu "Konsorsium Digital", sehingga barang dapat dikirim secara *Full Container Load* (FCL) yang jauh lebih murah dan terstandarisasi.
+
+## Tim Pengembang
+Proyek ini dikembangkan oleh **Kelompok 6 (Kelas 4E)** yang terdiri dari:
+* Bagas Darma Saputra (2313020225) 
+* Dyah Avri Kartika Hapsari (2313020239) 
+* Ilham Dimas Ramadhan (2313020238) 
+
+## Fokus Fitur Utama
+Sistem ini dibangun dengan tiga modul utama:
+
+* **Modul 1: Smart Clustering (Fokus: Logistics)** 
+  Menggunakan algoritma *filtering* yang mencocokkan UMKM berdasarkan kesamaan kategori produk, kesesuaian HS Code (agar lolos Bea Cukai), dan kuota volume barang untuk memenuhi 1 kontainer penuh.
+* **Modul 2: B2B Matchmaking & Planning (Fokus: Supply Chain Planning)** 
+  Sistem yang dirancang untuk mempertemukan pesanan MOQ dari *Buyer* dengan kapasitas gabungan dari "Konsorsium UMKM" yang sudah terbentuk, serta menampilkan informasi jadwal keberangkatan logistik.
+* **Modul 3: Role-based Dashboard (Fokus: Supply Chain Enterprise Applications)** 
+  Sebuah dasbor interaktif sederhana yang disesuaikan untuk 2 aktor utama: UMKM (untuk melihat status konsorsium dan kuota yang masih kurang) serta Buyer (untuk melihat daftar konsorsium yang sudah siap di-order).
+
+## Gambaran Sistem & Alur Kerja
+
+* **Aktor Sistem:** Interaksi di dalam sistem melibatkan tiga aktor utama, yaitu UMKM, Buyer, dan Sistem (Engine)[cite: 30].
+* **Alur Gabung Konsorsium:** 
+  * Proses dimulai ketika UMKM melakukan input data barang[cite: 31]. 
+  * Sistem kemudian akan mengecek database untuk melihat apakah kapasitas barang sudah memenuhi MOQ atau belum[cite: 31].
+  * Jika kapasitas sudah memenuhi batas (>= MOQ), UMKM akan langsung diarahkan untuk mengakses Dasbor Mandiri[cite: 31].
+  * Jika kapasitas belum memenuhi batas, sistem akan mencari konsorsium aktif yang memiliki kecocokan[cite: 31].
+  * Sistem akan menggabungkan UMKM tersebut ke dalam grup konsorsium yang sudah ada (eksisting) atau membuat grup konsorsium baru jika tidak ada yang cocok[cite: 31].
+  * Setelah itu, UMKM akan diarahkan untuk mengakses Dasbor Konsorsium[cite: 31].
+* **Arsitektur Teknis:** Komunikasi data diproses melalui lapisan *Frontend*, *Backend*, dan *Database*[cite: 32]. Data aplikasi menstrukturkan beberapa entitas utama seperti `Users`, `Produk`, `Konsorsium`, `Anggota_Konsorsium`, `Pesanan_Ekspor`, dan `Sistem_Engine`[cite: 33].
