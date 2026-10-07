@@ -1,24 +1,24 @@
 # NusaChain
 
-NusaChain adalah sebuah Supply Chain Enterprise Application berbasis web yang berfungsi sebagai platform konsolidasi logistik B2B[cite: 29]. 
+NusaChain adalah sebuah Supply Chain Enterprise Application berbasis web yang berfungsi sebagai platform konsolidasi logistik B2B. 
 
-Platform ini dirancang untuk memecahkan masalah mahalnya ongkos kirim eceran *Less than Container Load* (LCL) dan ketidakmampuan UMKM untuk memenuhi *Minimum Order Quantity* (MOQ) yang diminta oleh pembeli global[cite: 29]. NusaChain bekerja dengan cara menggabungkan kapasitas produksi dari beberapa UMKM menjadi satu "Konsorsium Digital", sehingga barang dapat dikirim secara *Full Container Load* (FCL) yang jauh lebih murah dan terstandarisasi[cite: 29].
+Platform ini dirancang untuk memecahkan masalah mahalnya ongkos kirim eceran *Less than Container Load* (LCL) dan ketidakmampuan UMKM untuk memenuhi *Minimum Order Quantity* (MOQ) yang diminta oleh pembeli global . NusaChain bekerja dengan cara menggabungkan kapasitas produksi dari beberapa UMKM menjadi satu "Konsorsium Digital", sehingga barang dapat dikirim secara *Full Container Load* (FCL) yang jauh lebih murah dan terstandarisasi.
 
 ## Tim Pengembang
 Proyek ini dikembangkan oleh **Kelompok 6 (Kelas 4E)** yang terdiri dari:
-* Bagas Darma Saputra (2313020225)[cite: 29]
-* Dyah Avri Kartika Hapsari (2313020239)[cite: 29]
-* Ilham Dimas Ramadhan (2313020238)[cite: 29]
+* Bagas Darma Saputra (2313020225) 
+* Dyah Avri Kartika Hapsari (2313020239) 
+* Ilham Dimas Ramadhan (2313020238) 
 
 ## Fokus Fitur Utama
 Sistem ini dibangun dengan tiga modul utama:
 
 * **Modul 1: Smart Clustering (Fokus: Logistics)** 
-  Menggunakan algoritma *filtering* yang mencocokkan UMKM berdasarkan kesamaan kategori produk, kesesuaian HS Code (agar lolos Bea Cukai), dan kuota volume barang untuk memenuhi 1 kontainer penuh[cite: 29].
+  Menggunakan algoritma *filtering* yang mencocokkan UMKM berdasarkan kesamaan kategori produk, kesesuaian HS Code (agar lolos Bea Cukai), dan kuota volume barang untuk memenuhi 1 kontainer penuh.
 * **Modul 2: B2B Matchmaking & Planning (Fokus: Supply Chain Planning)** 
-  Sistem yang dirancang untuk mempertemukan pesanan MOQ dari *Buyer* dengan kapasitas gabungan dari "Konsorsium UMKM" yang sudah terbentuk, serta menampilkan informasi jadwal keberangkatan logistik[cite: 29].
+  Sistem yang dirancang untuk mempertemukan pesanan MOQ dari *Buyer* dengan kapasitas gabungan dari "Konsorsium UMKM" yang sudah terbentuk, serta menampilkan informasi jadwal keberangkatan logistik.
 * **Modul 3: Role-based Dashboard (Fokus: Supply Chain Enterprise Applications)** 
-  Sebuah dasbor interaktif sederhana yang disesuaikan untuk 2 aktor utama: UMKM (untuk melihat status konsorsium dan kuota yang masih kurang) serta Buyer (untuk melihat daftar konsorsium yang sudah siap di-order)[cite: 29].
+  Sebuah dasbor interaktif sederhana yang disesuaikan untuk 2 aktor utama: UMKM (untuk melihat status konsorsium dan kuota yang masih kurang) serta Buyer (untuk melihat daftar konsorsium yang sudah siap di-order).
 
 ## Gambaran Sistem & Alur Kerja
 
