@@ -24,6 +24,9 @@ $routes->group('umkm', ['filter' => 'roleUmkm'], static function ($routes) {
     $routes->get('dashboard', 'Dashboard::index');
     $routes->get('produk', 'Produk::index');
     $routes->post('produk/simpan', 'Produk::simpan');
+    $routes->get('produk/hapus/(:num)', 'Produk::hapus/$1');
+    $routes->get('produk/edit/(:num)', 'Produk::edit/$1');
+    $routes->post('produk/update/(:num)', 'Produk::update/$1');
 });
 
 // ---------------------------------------------------------

@@ -19,7 +19,7 @@ class Auth extends BaseController
 
         $user = $userModel->where('email', $email)->first();
 
-        if ($user && password_verify($password, $user['password'])) {
+        if ($user && $password === $user['password']) {
             $sessionData = [
                 'id_user'    => $user['id_user'],
                 'nama'       => $user['nama'],

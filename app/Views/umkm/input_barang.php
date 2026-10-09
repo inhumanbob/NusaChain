@@ -55,6 +55,47 @@
                             <button type="submit" class="btn btn-primary">Simpan Data Barang</button>
                         </div>
                     </form>
+                    <!-- ... Kode Form Input sebelumnya ... -->
+                    </form>
+
+                    <!-- BATAS TAMBAHAN TABEL DAFTAR BARANG (READ, UPDATE, DELETE) -->
+                    <hr class="my-5">
+                    <h5 class="fw-bold text-primary mb-3">Daftar Barang Saya</h5>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nama Produk</th>
+                                    <th>HS Code</th>
+                                    <th>Kapasitas Bulanan</th>
+                                    <th class="text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($produk)): ?>
+                                    <?php $i = 1; foreach ($produk as $row): ?>
+                                    <tr>
+                                        <td><?= $i++ ?></td>
+                                        <td class="fw-semibold"><?= esc($row['nama_produk']) ?></td>
+                                        <td><code><?= esc($row['hs_code']) ?></code></td>
+                                        <td><?= number_format($row['kapasitas_bulanan']) ?> <?= esc($row['satuan']) ?></td>
+                                        <td class="text-center">
+                                            <a href="<?= base_url('umkm/produk/edit/'.$row['id_produk']) ?>" class="btn btn-sm btn-warning">Edit</a>
+                                            <!-- Fitur Konfirmasi Hapus via Javascript -->
+                                            <a href="<?= base_url('umkm/produk/hapus/'.$row['id_produk']) ?>" class="btn btn-sm btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus produk ini?')">Hapus</a>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-3">Belum ada barang yang didaftarkan.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
 
                 </div>
             </div>
