@@ -23,7 +23,7 @@ $routes->get('logout', 'Auth::logout');
 $routes->group('umkm', ['filter' => 'roleUmkm'], static function ($routes) {
     $routes->get('dashboard', 'Dashboard::index');
     $routes->get('produk', 'Produk::index');
-    // Tambahkan rute CRUD produk UMKM di sini nanti
+    $routes->post('produk/simpan', 'Produk::simpan');
 });
 
 // ---------------------------------------------------------
