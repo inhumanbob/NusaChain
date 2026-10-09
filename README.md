@@ -22,12 +22,12 @@ Sistem ini dibangun dengan tiga modul utama:
 
 ## Gambaran Sistem & Alur Kerja
 
-* **Aktor Sistem:** Interaksi di dalam sistem melibatkan tiga aktor utama, yaitu UMKM, Buyer, dan Sistem (Engine)[cite: 30].
+* **Aktor Sistem:** Interaksi di dalam sistem melibatkan tiga aktor utama, yaitu UMKM, Buyer, dan Sistem (Engine).
 * **Alur Gabung Konsorsium:** 
-  * Proses dimulai ketika UMKM melakukan input data barang[cite: 31]. 
-  * Sistem kemudian akan mengecek database untuk melihat apakah kapasitas barang sudah memenuhi MOQ atau belum[cite: 31].
-  * Jika kapasitas sudah memenuhi batas (>= MOQ), UMKM akan langsung diarahkan untuk mengakses Dasbor Mandiri[cite: 31].
-  * Jika kapasitas belum memenuhi batas, sistem akan mencari konsorsium aktif yang memiliki kecocokan[cite: 31].
-  * Sistem akan menggabungkan UMKM tersebut ke dalam grup konsorsium yang sudah ada (eksisting) atau membuat grup konsorsium baru jika tidak ada yang cocok[cite: 31].
-  * Setelah itu, UMKM akan diarahkan untuk mengakses Dasbor Konsorsium[cite: 31].
-* **Arsitektur Teknis:** Komunikasi data diproses melalui lapisan *Frontend*, *Backend*, dan *Database*[cite: 32]. Data aplikasi menstrukturkan beberapa entitas utama seperti `Users`, `Produk`, `Konsorsium`, `Anggota_Konsorsium`, `Pesanan_Ekspor`, dan `Sistem_Engine`[cite: 33].
+  * Proses dimulai ketika UMKM melakukan input data barang. 
+  * Sistem kemudian akan mengecek database untuk melihat apakah kapasitas barang sudah memenuhi MOQ atau belum.
+  * Jika kapasitas sudah memenuhi batas (>= MOQ), UMKM akan langsung diarahkan untuk mengakses Dasbor Mandiri.
+  * Jika kapasitas belum memenuhi batas, sistem akan mencari konsorsium aktif yang memiliki kecocokan.
+  * Sistem akan menggabungkan UMKM tersebut ke dalam grup konsorsium yang sudah ada (eksisting) atau membuat grup konsorsium baru jika tidak ada yang cocok.
+  * Setelah itu, UMKM akan diarahkan untuk mengakses Dasbor Konsorsium.
+* **Arsitektur Teknis:** Komunikasi data diproses melalui lapisan *Frontend*, *Backend*, dan *Database*. Data aplikasi menstrukturkan beberapa entitas utama seperti `Users`, `Produk`, `Konsorsium`, `Anggota_Konsorsium`, `Pesanan_Ekspor`, dan `Sistem_Engine`.
