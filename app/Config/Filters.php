@@ -29,6 +29,8 @@ class Filters extends BaseFilters
         'toolbar'       => DebugToolbar::class,
         'honeypot'      => Honeypot::class,
         'invalidchars'  => InvalidChars::class,
+        'roleUmkm'      => \App\Filters\RoleUmkm::class,
+        'roleBuyer'     => \App\Filters\RoleBuyer::class,
         'secureheaders' => SecureHeaders::class,
         'cors'          => Cors::class,
         'forcehttps'    => ForceHTTPS::class,
