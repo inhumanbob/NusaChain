@@ -35,6 +35,7 @@ $routes->group('umkm', ['filter' => 'roleUmkm'], static function ($routes) {
 // ---------------------------------------------------------
 $routes->group('buyer', ['filter' => 'roleBuyer'], static function ($routes) {
     $routes->get('', 'Buyer::dashboard');
+    $routes->get('dashboard', 'Buyer::dashboard'); // Penambahan rute /buyer/dashboard
     $routes->get('cari', 'Buyer::cariKonsorsium');
     $routes->get('pesan/(:num)', 'Buyer::buatPesanan/$1');
     $routes->post('simpan-pesanan', 'Buyer::simpanPesanan');

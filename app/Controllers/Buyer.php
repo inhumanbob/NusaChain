@@ -93,6 +93,6 @@ class Buyer extends BaseController
             'trust_score'        => 85, // Nilai acuan default awal
         ]);
 
-        return redirect()->to('/buyer')->with('success', 'Pesanan ekspor berhasil dibuat dan menunggu konfirmasi pengiriman.');
+        return redirect()->to('/buyer/dashboard')->with('success', 'Pesanan ekspor berhasil dibuat dan menunggu konfirmasi pengiriman.');
     }
 }

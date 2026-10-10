@@ -14,7 +14,8 @@
             <h2 class="fw-bold mb-0">Katalog Konsorsium Siap Ekspor</h2>
             <p class="text-muted mb-0">Daftar konsorsium UMKM yang kuota kontainernya sudah terpenuhi (FCL).</p>
         </div>
-        <a href="/buyer" class="btn btn-outline-secondary">Kembali ke Dasbor</a>
+        <!-- Ubah href="/buyer" menjadi href="/buyer/dashboard" -->
+        <a href="/buyer/dashboard" class="btn btn-outline-secondary">Kembali ke Dasbor</a>
     </div>
 
     <!-- Pencarian berdasarkan HS Code -->
