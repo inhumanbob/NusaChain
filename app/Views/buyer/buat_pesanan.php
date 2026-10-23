@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#10499D">
-    <title>Form Pemesanan MOQ - NusaChain</title>
+    <title>Form Pemesanan Kargo - NusaChain</title>
 
     <link rel="icon" href="<?= base_url('assets/img/icon.png') ?>" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,7 +38,6 @@
 
         body { overflow-x: hidden; }
 
-        /* KONSISTENSI CONTAINER & LAYOUT */
         .page-shell { padding-top: 2rem; padding-bottom: 3rem; }
 
         .page-hero {
@@ -72,8 +71,6 @@
 
         .hero-content, .hero-action { position: relative; z-index: 1; }
 
-        /* EYEBROW DIHAPUS SEPENUHNYA */
-
         .page-title { margin: 0 0 .5rem; color: var(--white); font-size: clamp(1.55rem, 2.8vw, 2.05rem); font-weight: 700; letter-spacing: -.035em; }
         .page-subtitle { max-width: 690px; margin: 0; color: rgba(255, 255, 255, 0.84); font-size: .9rem; line-height: 1.7; }
 
@@ -98,7 +95,6 @@
         }
         .btn-secondary-custom:hover { color: var(--royal-blue); background: var(--ice-blue); border-color: #B8CBE5; }
 
-        /* KARTU KONTEN KONSISTEN */
         .content-card {
             background: var(--surface);
             border: 1px solid rgba(226, 232, 240, 0.9);
@@ -124,7 +120,6 @@
 
         .consortium-body, .form-body { padding: 24px; }
 
-        /* DETAIL KONSORSIUM */
         .summary-label { margin-bottom: 7px; color: var(--muted); font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
         .consortium-name { margin: 0 0 20px; color: var(--royal-blue); font-size: 1.2rem; font-weight: 700; line-height: 1.4; }
 
@@ -135,7 +130,6 @@
         .detail-key i { width: 16px; color: #94A3B8; text-align: center; }
         .detail-value { color: #0F172A; font-size: 0.88rem; font-weight: 600; text-align: right; }
 
-        /* BADGES */
         .status-ready {
             display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
             color: #166534; background: #DCFCE7; border: 1px solid #BBF7D0;
@@ -164,7 +158,6 @@
         .member-name { color: #0F172A; font-size: 0.88rem; font-weight: 600; }
         .member-meta { margin-top: 3px; color: var(--muted); font-size: 0.78rem; }
 
-        /* FORM ELEMENTS */
         .form-label { display: block; margin-bottom: 8px; color: #334155; font-size: 0.85rem; font-weight: 600; }
         .form-control-custom {
             width: 100%; min-height: 48px; padding: 11px 16px; color: #334155; background: #FAFCFF;
@@ -176,7 +169,6 @@
 
         .form-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 24px; margin-top: 24px; border-top: 1px solid #EEF2F7; }
 
-        /* Popup Konfirmasi (Konsisten dengan Enterprise) */
         .nc-action-dialog { max-width: 440px; }
         .nc-action-content { border: 1px solid rgba(226,232,240,.9); border-radius: 18px; overflow: hidden; }
         .nc-action-icon { display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; margin: 0 auto 15px; color: var(--royal-blue); background: #EAF2FF; border-radius: 16px; font-size: 1.35rem; }
@@ -219,15 +211,15 @@
     $statusKuota    = (string) ($konsorsium['status_kuota'] ?? '');
     $anggota        = $anggota ?? [];
     $besok          = date('Y-m-d', strtotime('+1 day'));
+    $estimasiUsd    = (float) $kapasitas * 2.50;
 ?>
 
 <main class="container page-shell">
 
-    <!-- Hero Banner (Tanpa Eyebrow) -->
     <section class="page-hero" aria-labelledby="page-title">
         <div class="hero-content">
-            <h1 class="page-title" id="page-title">Form Pemesanan Pengiriman (MOQ)</h1>
-            <p class="page-subtitle">Periksa detail konsorsium, tentukan kebutuhan volume pesanan, lalu ajukan permintaan pengiriman logistik ekspor Anda.</p>
+            <h1 class="page-title" id="page-title">Form Pemesanan Pengiriman Ekspor</h1>
+            <p class="page-subtitle">Tentukan volume pesanan sesuai kebutuhan Anda, periksa estimasi tagihan Escrow dalam USD, lalu ajukan pesanan kargo konsorsium.</p>
         </div>
         <div class="hero-action d-flex justify-content-lg-end">
             <a href="<?= base_url('buyer/cari') ?>" class="btn-outline-hero">
@@ -260,7 +252,7 @@
                         </div>
                         <div class="detail-row">
                             <span class="detail-key"><i class="fas fa-cubes" aria-hidden="true"></i> Volume Terkumpul</span>
-                            <span class="detail-value text-primary fs-6"><?= number_format($kapasitas, 0, ',', '.') ?> <span class="text-muted fw-normal" style="font-size: 0.8rem">unit</span></span>
+                            <span class="detail-value text-primary fs-6"><?= number_format($kapasitas, 0, ',', '.') ?> <span class="text-muted fw-normal" style="font-size: 0.8rem">Kg</span></span>
                         </div>
                         <div class="detail-row">
                             <span class="detail-key"><i class="fas fa-circle-info" aria-hidden="true"></i> Status Kuota</span>
@@ -276,7 +268,7 @@
 
                     <div class="info-note">
                         <i class="fas fa-lightbulb" aria-hidden="true"></i>
-                        <span>Volume terkumpul menunjukkan kapasitas gabungan FCL yang terdaftar. Pastikan jumlah pesanan sesuai kebutuhan pengadaan Anda.</span>
+                        <span>Anda dapat memesan sebagian volume atau memborong seluruh kapasitas kontainer (maksimal <strong><?= number_format($kapasitas, 0, ',', '.') ?> Kg</strong>).</span>
                     </div>
                 </div>
             </section>
@@ -299,7 +291,7 @@
                                     <div>
                                         <div class="member-name"><?= esc($a['nama']) ?></div>
                                         <div class="member-meta">
-                                            Kontribusi <strong><?= number_format((int) $a['kontribusi_kapasitas'], 0, ',', '.') ?></strong> unit
+                                            Kontribusi <strong><?= number_format((int) $a['kontribusi_kapasitas'], 0, ',', '.') ?></strong> Kg
                                         </div>
                                     </div>
                                     <span class="score-badge" title="Skor Kepercayaan Sistem">
@@ -325,7 +317,7 @@
                     <span class="heading-icon"><i class="fas fa-file-signature" aria-hidden="true"></i></span>
                     <div>
                         <h2 id="order-form-title">Formulir Pesanan</h2>
-                        <p>Lengkapi informasi pengajuan pesanan dengan teliti.</p>
+                        <p>Tentukan volume muatan yang Anda inginkan dan pilih jadwal pengiriman.</p>
                     </div>
                 </div>
 
@@ -333,28 +325,52 @@
                     <form method="post" action="<?= base_url('buyer/simpan-pesanan') ?>"
                           data-confirm-submit="true"
                           data-confirm-title="Ajukan Pesanan Ekspor?"
-                          data-confirm-message="Pastikan jumlah target MOQ dan tanggal pengiriman sudah benar. Order akan diteruskan ke konsorsium."
+                          data-confirm-message="Pastikan tanggal pengiriman dan volume pesanan Anda sudah sesuai."
                           data-confirm-text="Ya, Ajukan Order"
                           data-confirm-variant="save">
                         
                         <?= csrf_field() ?>
                         <input type="hidden" name="id_konsorsium" value="<?= $idKonsorsium ?>">
 
-                        <div class="mb-4">
-                            <label for="total_moq" class="form-label">Total Target Pesanan / MOQ (Unit) <span class="required-mark">*</span></label>
-                            <input
-                                type="number"
-                                id="total_moq"
-                                name="total_moq"
-                                class="form-control-custom"
-                                value="<?= esc(old('total_moq', $kapasitas)) ?>"
-                                min="1"
-                                max="<?= $kapasitas ?>"
-                                step="1"
-                                required
-                                inputmode="numeric"
-                            >
-                            <div class="form-text"><i class="fas fa-info-circle me-1"></i>Maksimal <strong><?= number_format($kapasitas, 0, ',', '.') ?></strong> unit sesuai ketersediaan volume konsorsium.</div>
+                        <!-- Input Volume MOQ (Bebas Diketik / Fleksibel) -->
+                        <div class="mb-3">
+                            <label for="total_moq" class="form-label">
+                                Volume Pemesanan yang Diajukan (Kg) <span class="required-mark">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input
+                                    type="number"
+                                    id="total_moq"
+                                    name="total_moq"
+                                    class="form-control form-control-custom fw-bold font-monospace"
+                                    value="<?= esc(old('total_moq', $kapasitas)) ?>"
+                                    min="1"
+                                    max="<?= $kapasitas ?>"
+                                    step="1"
+                                    required
+                                    style="border-top-right-radius: 0; border-bottom-right-radius: 0;"
+                                >
+                                <span class="input-group-text bg-light text-muted fw-semibold border-start-0" style="border-radius: 0 10px 10px 0; border-color: #D7E0EC;">Kg</span>
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1 text-primary"></i>Kapasitas maksimal yang tersedia di konsorsium ini: <strong><?= number_format($kapasitas, 0, ',', '.') ?></strong> Kg.
+                            </div>
+                        </div>
+
+                        <!-- Estimasi Tagihan Escrow dalam USD (Live Update) -->
+                        <div class="p-3 mb-4 rounded-3 border" style="background: #F8FAFC; border-color: #E2E8F0 !important;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-muted small fw-semibold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.04em;">Estimasi Tagihan Escrow (USD)</div>
+                                    <div class="fw-bold text-primary font-monospace fs-4 mt-1" id="labelTotalUsd">
+                                        USD <?= number_format($estimasiUsd, 2, '.', ',') ?>
+                                    </div>
+                                </div>
+                                <div class="text-end text-muted small">
+                                    Tarif Ekspor:<br>
+                                    <span class="fw-bold text-dark font-monospace">$2.50 / Kg</span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -368,7 +384,7 @@
                                 min="<?= esc($besok) ?>"
                                 required
                             >
-                            <div class="form-text"><i class="far fa-calendar-check me-1"></i>Estimasi pengiriman logistik. Tanggal paling cepat adalah besok.</div>
+                            <div class="form-text"><i class="far fa-calendar-check me-1"></i>Estimasi jadwal muat kargo pelabuhan. Tanggal paling awal adalah besok.</div>
                         </div>
 
                         <div class="form-actions mt-5">
@@ -386,7 +402,7 @@
     </div>
 </main>
 
-<!-- Popup Konfirmasi (Sama dengan halaman Profil) -->
+<!-- Popup Konfirmasi -->
 <div class="modal fade" id="ncActionConfirmModal" tabindex="-1" aria-labelledby="ncActionConfirmTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered nc-action-dialog">
         <div class="modal-content nc-action-content shadow-lg">
@@ -408,7 +424,20 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // MODAL KONFIRMASI LOGIC
+    const inputMoq = document.getElementById('total_moq');
+    const labelTotal = document.getElementById('labelTotalUsd');
+    const tarifPerKg = 2.50;
+
+    // Kalkulator Live USD saat volume diubah
+    if (inputMoq && labelTotal) {
+        inputMoq.addEventListener('input', function () {
+            let val = parseFloat(this.value) || 0;
+            let total = val * tarifPerKg;
+            labelTotal.textContent = 'USD ' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        });
+    }
+
+    // Modal Konfirmasi
     const modalElement = document.getElementById('ncActionConfirmModal');
     if (!modalElement || typeof bootstrap === 'undefined') return;
 
@@ -421,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function showConfirmation(options) {
         pendingAction = options;
         titleElement.textContent = options.title || 'Konfirmasi tindakan';
-        messageElement.textContent = options.message || 'Apakah kamu yakin ingin melanjutkan?';
+        messageElement.textContent = options.message || 'Apakah Anda yakin ingin melanjutkan?';
         acceptButton.textContent = options.confirmText || 'Ya, Lanjutkan';
         modal.show();
     }
@@ -434,17 +463,19 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             event.preventDefault();
             
-            // Validasi HTML5 sederhana sebelum modal muncul
             if (!form.checkValidity()) {
                 form.reportValidity();
                 return;
             }
 
+            const currentVolume = inputMoq ? (parseFloat(inputMoq.value) || 0) : 0;
+            const currentTotalUsd = (currentVolume * tarifPerKg).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
             showConfirmation({
                 type: 'submit',
                 form,
                 title: form.dataset.confirmTitle,
-                message: form.dataset.confirmMessage,
+                message: 'Total pesanan: ' + currentVolume.toLocaleString('id-ID') + ' Kg dengan estimasi tagihan USD ' + currentTotalUsd + '. Lanjutkan pengajuan?',
                 confirmText: form.dataset.confirmText
             });
         });

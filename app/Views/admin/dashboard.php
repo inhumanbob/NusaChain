@@ -157,7 +157,7 @@
             <span class="badge bg-white text-primary fw-bold px-2 py-1" style="font-size: 0.75rem;">ADMINISTRATOR GATEWAY</span>
         </div>
         <h2 class="fw-bold mb-1 text-white">Pusat Kendali Operasional NusaChain</h2>
-        <p class="mb-0 text-white-50 small">Otoritas verifikasi legalitas bisnis (KYB) dan inspeksi kargo konsolidasi FCL di pelabuhan hub.</p>
+        <p class="mb-0 text-white-50 small">Otoritas verifikasi legalitas bisnis (KYB), validasi rekening bersama (Escrow), dan inspeksi kargo konsolidasi FCL.</p>
     </div>
 
     <!-- NOTIFIKASI FLASH ALERT -->
@@ -446,13 +446,20 @@
         </div>
     </div>
 
-    <!-- TABEL 2: PENGAWASAN & MONITORING SEMUA KARGO LAUT FCL -->
+    <!-- TABEL 2: PENGAWASAN HUB, DANA ESCROW, & KEBERANGKATAN KARGO FCL -->
     <div class="card card-custom">
-        <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
+        <div class="card-header bg-white py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 border-bottom">
             <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style="font-size: 1rem;">
                 <i class="fas fa-ship text-primary"></i> Pengawasan Hub Pelabuhan & Keberangkatan Kargo FCL
             </h5>
-            <span class="badge bg-primary"><?= count($daftarKargo ?? []) ?> total kargo</span>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <?php if (!empty($pembayaranPending) && $pembayaranPending > 0): ?>
+                    <span class="badge bg-warning text-dark">
+                        <i class="fas fa-wallet me-1"></i> <?= $pembayaranPending ?> Butuh Validasi Dana
+                    </span>
+                <?php endif; ?>
+                <span class="badge bg-primary"><?= count($daftarKargo ?? []) ?> total kargo</span>
+            </div>
         </div>
         <div class="table-responsive">
             <table class="table table-custom table-hover align-middle mb-0">
@@ -462,14 +469,22 @@
                         <th>Konsorsium</th>
                         <th>HS Code</th>
                         <th>Tonase Kargo</th>
-                        <th>Status / Posisi Kargo</th>
+                        <th>Status / Posisi</th>
+                        <th>Dana Escrow & Bukti</th>
                         <th class="text-center">Inspeksi & Izin Layar</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (!empty($daftarKargo)): ?>
                         <?php foreach ($daftarKargo as $k): ?>
-                            <?php $statusKargo = strtolower(trim((string)($k['status_pemesanan'] ?? ''))); ?>
+                            <?php 
+                                $statusKargo    = strtolower(trim((string)($k['status_pemesanan'] ?? ''))); 
+                                $statusBayar    = $k['status_pembayaran'] ?? 'Belum Bayar';
+                                $nominalTagihan = (float)($k['total_tagihan'] ?? 0);
+                                if ($nominalTagihan <= 0) {
+                                    $nominalTagihan = (float)($k['total_moq'] ?? 0) * 2.50; // Disesuaikan dengan USD
+                                }
+                            ?>
                             <tr>
                                 <td>
                                     <span class="fw-bold text-primary font-monospace">#ORD-<?= str_pad((string)$k['id_pesanan'], 4, '0', STR_PAD_LEFT) ?></span>
@@ -491,28 +506,72 @@
                                         </span>
                                     <?php elseif ($statusKargo === 'diproses'): ?>
                                         <span class="badge bg-info text-dark">
-                                            <i class="fas fa-boxes-packing me-1"></i> Gudang Hub (Siap Inspeksi)
+                                            <i class="fas fa-boxes-packing me-1"></i> Gudang Hub
                                         </span>
                                     <?php elseif ($statusKargo === 'dikirim'): ?>
                                         <span class="badge bg-primary">
-                                            <i class="fas fa-ship me-1"></i> Dalam Pelayaran
+                                            <i class="fas fa-ship me-1"></i> Berlayar
                                         </span>
                                     <?php elseif ($statusKargo === 'selesai'): ?>
                                         <span class="badge bg-success">
-                                            <i class="fas fa-check-circle me-1"></i> Tiba di Tujuan (Selesai)
+                                            <i class="fas fa-check-circle me-1"></i> Selesai
                                         </span>
                                     <?php else: ?>
                                         <span class="badge bg-secondary"><?= esc($k['status_pemesanan']) ?></span>
                                     <?php endif; ?>
                                 </td>
+
+                                <!-- KOLOM STATUS ESCROW & BUKTI TRANSFER -->
+                                <td>
+                                    <div class="fw-bold text-dark font-monospace mb-1" style="font-size: 0.85rem;">
+                                        USD <?= number_format($nominalTagihan, 2, '.', ',') ?>
+                                    </div>
+                                    <?php if ($statusBayar === 'Menunggu Verifikasi'): ?>
+                                        <div class="d-flex flex-column gap-1">
+                                            <span class="badge bg-warning text-dark" style="font-size: 0.72rem;">
+                                                <i class="fas fa-clock me-1"></i> Menunggu Verifikasi
+                                            </span>
+                                            <div class="d-inline-flex gap-1">
+                                                <?php if (!empty($k['bukti_bayar'])): ?>
+                                                    <a href="<?= esc($k['bukti_bayar']) ?>" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2 fw-semibold" style="font-size: 0.72rem;" title="Lihat Bukti Transfer">
+                                                        <i class="fas fa-external-link-alt me-1"></i> Bukti
+                                                    </a>
+                                                <?php endif; ?>
+                                                <a href="<?= base_url('admin/pembayaran/verifikasi/' . $k['id_pesanan']) ?>" 
+                                                   class="btn btn-sm btn-success py-0 px-2 fw-bold" 
+                                                   style="font-size: 0.72rem;"
+                                                   onclick="return confirm('Konfirmasi bahwa dana sejumlah USD <?= number_format($nominalTagihan, 2, '.', ',') ?> telah terverifikasi di rekening Escrow NusaChain?')">
+                                                    <i class="fas fa-check me-1"></i> Validasi Dana
+                                                </a>
+                                            </div>
+                                        </div>
+                                    <?php elseif ($statusBayar === 'Lunas'): ?>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.72rem;">
+                                            <i class="fas fa-shield-halved me-1"></i> Escrow Aman (Lunas)
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge bg-light text-muted border" style="font-size: 0.72rem;">
+                                            <i class="fas fa-hourglass-start me-1"></i> Belum Bayar
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
+
+                                <!-- KOLOM AKSI INSPEKSI & IZIN LAYAR -->
                                 <td class="text-center">
                                     <?php if ($statusKargo === 'diproses'): ?>
-                                        <!-- Tombol aktif untuk menerbitkan izin layar kargo yang ada di gudang hub -->
-                                        <a href="<?= base_url('admin/kargo/kirim/' . $k['id_pesanan']) ?>" 
-                                           class="btn-action btn btn-sm btn-primary px-3 shadow-sm" 
-                                           onclick="return confirm('Pastikan kontainer telah memenuhi syarat 100% FCL dan clearance bea cukai telah lengkap. Terbitkan izin layar?')">
-                                            <i class="fas fa-anchor me-1"></i> Izin Layar (Dikirim)
-                                        </a>
+                                        <?php if ($statusBayar === 'Lunas'): ?>
+                                            <!-- Tombol izin layar aktif jika kontainer siap dan dana Escrow lunas -->
+                                            <a href="<?= base_url('admin/kargo/kirim/' . $k['id_pesanan']) ?>" 
+                                               class="btn-action btn btn-sm btn-primary px-3 shadow-sm" 
+                                               onclick="return confirm('Pastikan kontainer telah memenuhi syarat 100% FCL dan clearance bea cukai telah lengkap. Terbitkan izin layar sekarang?')">
+                                                <i class="fas fa-anchor me-1"></i> Izin Layar (Dikirim)
+                                            </a>
+                                        <?php else: ?>
+                                            <!-- Terkunci otomatis jika dana belum diverifikasi Lunas -->
+                                            <button type="button" class="btn btn-sm btn-light border text-danger fw-semibold px-2 py-1 disabled" title="Dana Escrow belum disetor atau belum diverifikasi Lunas" style="font-size: 0.75rem; border-radius: 8px;">
+                                                <i class="fas fa-lock me-1"></i> Tunggu Dana Escrow
+                                            </button>
+                                        <?php endif; ?>
                                     <?php elseif ($statusKargo === 'pending'): ?>
                                         <span class="badge bg-light text-muted border py-2 px-3">
                                             <i class="fas fa-hourglass-start me-1"></i> Menunggu UMKM
@@ -531,7 +590,7 @@
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
+                            <td colspan="7" class="text-center text-muted py-4">
                                 <i class="fas fa-box-open fs-3 d-block mb-2 text-secondary opacity-50"></i>
                                 Belum ada pesanan kargo yang tercatat di dalam sistem.
                             </td>

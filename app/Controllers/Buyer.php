@@ -196,7 +196,6 @@ class Buyer extends BaseController
 
         $db->transStart();
 
-        // Kunci baris agar dua Buyer tidak memesan konsorsium yang sama secara bersamaan
         $k = $db->query(
             'SELECT * FROM konsorsium WHERE id_konsorsium = ? FOR UPDATE',
             [$idKonsorsium]
@@ -204,12 +203,14 @@ class Buyer extends BaseController
 
         if (! $k || $k['status_kuota'] !== 'Penuh') {
             $error = 'Konsorsium tidak tersedia atau sudah dipesan.';
+        } elseif ($totalMoq <= 0) {
+            $error = 'Volume pesanan minimal 1 Kg.';
         } elseif ($totalMoq > (int) $k['total_kapasitas_gabungan']) {
-            $error = 'Jumlah pesanan melebihi kapasitas konsorsium ('
-                   . (int) $k['total_kapasitas_gabungan'] . ').';
+            $error = 'Jumlah pesanan melebihi kapasitas yang tersedia ('
+                   . number_format((int) $k['total_kapasitas_gabungan']) . ' Kg).';
         } else {
-            // Kalkulasi tagihan Escrow: Volume MOQ x Estimasi tarif ekspor Rp 25.000/Kg
-            $tarifPerKg   = (int) ($k['harga_per_kg'] ?? 25000);
+            // Tarif internasional: $2.50 USD per Kg
+            $tarifPerKg   = 2.50;
             $totalTagihan = $totalMoq * $tarifPerKg;
 
             $this->pesananModel->insert([

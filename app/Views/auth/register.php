@@ -554,7 +554,7 @@
             const csrfToken = csrfInput ? csrfInput.value : '';
 
             const formData = new FormData();
-            formData.append('url', url);
+            formData.append('link_dokumen', url); // HARUS link_dokumen sesuai nama di backend
             formData.append('<?= csrf_token() ?>', csrfToken);
 
             fetch('<?= base_url('auth/cek-dokumen') ?>', {
@@ -573,11 +573,18 @@
             .then(data => {
                 if (spinner) spinner.style.display = 'none';
                 if (!feedback || !badge || !inputField) return;
+                
+                // Pembaruan Token CSRF
+                if (data.csrf_token && csrfInput) {
+                    csrfInput.value = data.csrf_token;
+                }
 
                 feedback.style.display = 'block';
+                const pesanTeks = data.pesan || data.message || 'Status tautan tidak diketahui.';
 
-                if (data.status === 'valid') {
-                    // Tautan berstatus publik (HTTP 200)
+                // Backend Auth.php mengembalikan 'success' atau 'error'
+                if (data.status === 'success') {
+                    // Tautan berstatus publik (Valid)
                     inputField.style.borderColor = '#16A34A';
                     badge.className = 'badge bg-success text-white small';
                     badge.innerHTML = '<i class="fas fa-check-circle me-1"></i> Publik (Siap)';
@@ -585,27 +592,29 @@
                     feedback.style.backgroundColor = '#DCFCE7';
                     feedback.style.color = '#15803D';
                     feedback.style.border = '1px solid #BBF7D0';
-                    feedback.innerHTML = '<i class="fas fa-circle-check me-1"></i> ' + data.message;
-                } else if (data.status === 'private') {
-                    // Tautan privat Google Drive (perlu login)
-                    inputField.style.borderColor = '#DC2626';
-                    badge.className = 'badge bg-danger text-white small';
-                    badge.innerHTML = '<i class="fas fa-lock me-1"></i> Terkunci / Privat';
-
-                    feedback.style.backgroundColor = '#FEF2F2';
-                    feedback.style.color = '#991B1B';
-                    feedback.style.border = '1px solid #FECACA';
-                    feedback.innerHTML = '<i class="fas fa-triangle-exclamation me-1"></i> ' + data.message;
+                    feedback.innerHTML = '<i class="fas fa-circle-check me-1"></i> ' + pesanTeks;
                 } else {
-                    // Format bukan URL atau domain tidak terjangkau
-                    inputField.style.borderColor = '#D97706';
-                    badge.className = 'badge bg-warning text-dark small';
-                    badge.innerHTML = '<i class="fas fa-circle-question me-1"></i> Format URL Salah';
+                    // Jika teks pesan mengandung kata Private/Dibatasi
+                    if (pesanTeks.toLowerCase().includes('private') || pesanTeks.toLowerCase().includes('dibatasi')) {
+                        inputField.style.borderColor = '#DC2626';
+                        badge.className = 'badge bg-danger text-white small';
+                        badge.innerHTML = '<i class="fas fa-lock me-1"></i> Terkunci / Privat';
 
-                    feedback.style.backgroundColor = '#FFFBEB';
-                    feedback.style.color = '#92400E';
-                    feedback.style.border = '1px solid #FDE68A';
-                    feedback.innerHTML = '<i class="fas fa-info-circle me-1"></i> ' + data.message;
+                        feedback.style.backgroundColor = '#FEF2F2';
+                        feedback.style.color = '#991B1B';
+                        feedback.style.border = '1px solid #FECACA';
+                        feedback.innerHTML = '<i class="fas fa-triangle-exclamation me-1"></i> ' + pesanTeks;
+                    } else {
+                        // Format bukan URL atau domain tidak terjangkau
+                        inputField.style.borderColor = '#D97706';
+                        badge.className = 'badge bg-warning text-dark small';
+                        badge.innerHTML = '<i class="fas fa-circle-question me-1"></i> URL Bermasalah';
+
+                        feedback.style.backgroundColor = '#FFFBEB';
+                        feedback.style.color = '#92400E';
+                        feedback.style.border = '1px solid #FDE68A';
+                        feedback.innerHTML = '<i class="fas fa-info-circle me-1"></i> ' + pesanTeks;
+                    }
                 }
             })
             .catch(() => {

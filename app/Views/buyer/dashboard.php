@@ -154,7 +154,7 @@
         .status-default { color: #475569; background: #F1F5F9; border: 1px solid #E2E8F0; }
 
         /* KOLOM AKSI BUYER */
-        .order-action-heading, .order-action-cell { width: 220px; min-width: 220px; text-align: center !important; }
+        .order-action-heading, .order-action-cell { width: 200px; min-width: 200px; text-align: center !important; }
         .order-status-button { 
             display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; 
             padding: 0.55rem 0.85rem; border-radius: 8px; font-size: 0.78rem; font-weight: 600; 
@@ -220,7 +220,6 @@
     $jumlahDikirim = 0;
     $jumlahSelesai = 0;
 
-    // Kalkulasi Status Pesanan
     foreach ($daftarPesanan as $itemPesanan) {
         $statusRingkasan = strtolower(trim((string) ($itemPesanan['status_pemesanan'] ?? '')));
         if ($statusRingkasan === 'pending') {
@@ -246,7 +245,6 @@
         };
     };
 
-    // Label status sesuai alur Opsi 2 (Konsolidator Ketat)
     $getStatusLabel = static function ($status) {
         return match (strtolower(trim((string) $status))) {
             'pending'  => 'Menunggu UMKM',
@@ -259,9 +257,23 @@
 ?>
 
 <?= $this->include('layout/navbar') ?>
-<?= $this->include('layout/flash_toast') ?>
 
 <main class="container page-shell">
+
+    <!-- NOTIFIKASI FLASH ALERT -->
+    <?php if (session()->getFlashdata('success')) : ?>
+        <div class="alert alert-success d-flex align-items-center gap-2 border-0 shadow-sm mb-4" style="border-radius: 12px;">
+            <i class="fas fa-circle-check fs-5 text-success"></i>
+            <div><?= esc(session()->getFlashdata('success')) ?></div>
+        </div>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('error')) : ?>
+        <div class="alert alert-danger d-flex align-items-center gap-2 border-0 shadow-sm mb-4" style="border-radius: 12px;">
+            <i class="fas fa-triangle-exclamation fs-5 text-danger"></i>
+            <div><?= esc(session()->getFlashdata('error')) ?></div>
+        </div>
+    <?php endif; ?>
 
     <!-- BANNER PERINGATAN VERIFIKASI LEGALITAS (KYB) -->
     <?php if (! $isTerverifikasi): ?>
@@ -291,7 +303,7 @@
         <?php endif; ?>
     <?php endif; ?>
 
-    <!-- BANNER PERINGATAN KELENGKAPAN LOKASI / PELABUHAN TUJUAN -->
+    <!-- BANNER PERINGATAN KELENGKAPAN LOKASI -->
     <?php if (empty($user['koordinat_lokasi']) || $user['koordinat_lokasi'] === 'Belum diatur' || $user['koordinat_lokasi'] === null) : ?>
         <div class="alert alert-warning mb-4 d-flex align-items-center gap-3 border-start border-warning border-4" role="alert" style="background-color: #FFFBEB; border-radius: 14px; border: 0; box-shadow: 0 4px 12px rgba(16, 73, 157, 0.05);">
             <i class="fas fa-map-location-dot fs-3 text-warning" aria-hidden="true"></i>
@@ -312,7 +324,7 @@
         <div class="welcome-content d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
             <div>
                 <h1 id="page-title" class="welcome-title">Pantau Pengadaan Ekspor Anda</h1>
-                <p class="welcome-description">Pantau status pesanan, kuota tonase kontainer, dan jadwal keberangkatan kargo laut Anda secara real-time melalui sistem konsolidator NusaChain.</p>
+                <p class="welcome-description">Pantau status pesanan, setoran rekening bersama (Escrow), dan jadwal keberangkatan kargo laut Anda secara real-time melalui sistem konsolidator NusaChain.</p>
             </div>
             <a href="<?= base_url('buyer/cari') ?>" class="btn btn-utama">
                 <i class="fas fa-compass" aria-hidden="true"></i> Eksplorasi Konsorsium
@@ -374,7 +386,7 @@
         <div class="section-heading">
             <div>
                 <h2 class="section-title">Riwayat & Status Transaksi</h2>
-                <p class="section-subtitle">Pantau posisi kontainer dan konfirmasi penerimaan kargo setelah tiba di pelabuhan tujuan.</p>
+                <p class="section-subtitle">Pantau posisi kontainer, setoran dana Escrow, dan konfirmasi penerimaan kargo.</p>
             </div>
         </div>
 
@@ -397,29 +409,61 @@
                                 <th scope="col">Konsorsium</th>
                                 <th scope="col">HS Code</th>
                                 <th scope="col">Volume MOQ</th>
-                                <th scope="col">Tgl. Pengiriman</th>
                                 <th scope="col">Status Kargo</th>
+                                <th scope="col">Rekening Bersama (Escrow)</th>
                                 <th scope="col" class="order-action-heading">Aksi Konfirmasi</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($daftarPesanan as $p): ?>
                                 <?php
-                                    $statusPesanan = strtolower(trim((string) ($p['status_pemesanan'] ?? '')));
+                                    $statusPesanan   = strtolower(trim((string) ($p['status_pemesanan'] ?? '')));
+                                    $statusBayar     = $p['status_pembayaran'] ?? 'Belum Bayar';
+                                    $tagihanNominal  = (float) ($p['total_tagihan'] ?? 0);
+                                    if ($tagihanNominal <= 0) {
+                                        $tagihanNominal = (float) ($p['total_moq'] ?? 0) * 25000;
+                                    }
                                     $tanggalRaw = $p['tanggal_pengiriman'] ?? '';
                                     $tanggalPengiriman = $tanggalRaw && strtotime($tanggalRaw) !== false
                                         ? date('d M Y', strtotime($tanggalRaw))
                                         : 'Belum ditentukan';
                                 ?>
                                 <tr>
-                                    <td><span class="order-id">#ORD-<?= str_pad((string) ($p['id_pesanan'] ?? ''), 4, '0', STR_PAD_LEFT) ?></span></td>
+                                    <td>
+                                        <span class="order-id">#ORD-<?= str_pad((string) ($p['id_pesanan'] ?? ''), 4, '0', STR_PAD_LEFT) ?></span>
+                                        <div class="small text-muted text-nowrap"><i class="far fa-calendar-alt me-1"></i><?= esc($tanggalPengiriman) ?></div>
+                                    </td>
                                     <td><div class="consortium-name"><?= esc($p['nama_konsorsium'] ?? '-') ?></div></td>
                                     <td><span class="hs-badge"><i class="fas fa-barcode text-muted me-1"></i><?= esc($p['target_hs_code'] ?? '-') ?></span></td>
-                                    <td><span style="font-weight: 600; color: #334155;"><?= number_format((float) ($p['total_moq'] ?? 0)) ?></span> <span class="text-muted" style="font-size: 0.8rem;">Kg</span></td>
-                                    <td><span class="text-nowrap" style="color: #64748B;"><i class="far fa-calendar-alt me-2" aria-hidden="true"></i><?= esc($tanggalPengiriman) ?></span></td>
-                                    <td><span class="status-badge <?= $getStatusClass($statusPesanan) ?>"><?= esc($getStatusLabel($statusPesanan)) ?></span></td>
+                                    <td>
+                                        <span style="font-weight: 600; color: #334155;"><?= number_format((float) ($p['total_moq'] ?? 0)) ?></span> 
+                                        <span class="text-muted" style="font-size: 0.8rem;">Kg</span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge <?= $getStatusClass($statusPesanan) ?>"><?= esc($getStatusLabel($statusPesanan)) ?></span>
+                                    </td>
                                     
-                                    <!-- AKSI BUYER (OPSI 2: HANYA AKTIF SAAT STATUS 'DIKIRIM') -->
+                                    <!-- KOLOM STATUS REKENING BERSAMA (ESCROW) -->
+                                    <td>
+                                        <div class="fw-bold text-dark font-monospace mb-1" style="font-size: 0.85rem;">
+                                            USD <?= number_format($tagihanNominal, 2, '.', ',') ?>
+                                        </div>
+                                        <?php if ($statusBayar === 'Belum Bayar'): ?>
+                                            <button type="button" class="btn btn-sm btn-warning text-dark fw-bold px-2 py-1 shadow-sm" style="font-size: 0.75rem; border-radius: 6px;" data-bs-toggle="modal" data-bs-target="#modalBayar<?= $p['id_pesanan'] ?>">
+                                                <i class="fas fa-wallet me-1"></i> Setor Escrow
+                                            </button>
+                                        <?php elseif ($statusBayar === 'Menunggu Verifikasi'): ?>
+                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle py-1 px-2" style="font-size: 0.72rem;">
+                                                <i class="fas fa-clock me-1"></i> Verifikasi Dana
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle py-1 px-2" style="font-size: 0.72rem;">
+                                                <i class="fas fa-shield-halved me-1"></i> Escrow Aman (Lunas)
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
+
+                                    <!-- AKSI BUYER -->
                                     <td class="order-action-cell">
                                         <?php if ($statusPesanan === 'dikirim'): ?>
                                             <a href="<?= base_url('buyer/pesananDiterima/' . $p['id_pesanan']) ?>" 
@@ -428,7 +472,7 @@
                                                <i class="fas fa-box-open" aria-hidden="true"></i> Pesanan Diterima
                                             </a>
                                         <?php elseif ($statusPesanan === 'diproses'): ?>
-                                            <span class="badge bg-light text-primary border p-2 px-3" title="Komoditas berada di gudang konsolidasi pelabuhan menunggu izin layar Admin">
+                                            <span class="badge bg-light text-primary border p-2 px-3">
                                                 <i class="fas fa-clipboard-check me-1"></i> Inspeksi Admin
                                             </span>
                                         <?php elseif ($statusPesanan === 'selesai'): ?>
@@ -451,7 +495,12 @@
                 <div class="mobile-order-list">
                     <?php foreach ($daftarPesanan as $p): ?>
                         <?php
-                            $statusPesanan = strtolower(trim((string) ($p['status_pemesanan'] ?? '')));
+                            $statusPesanan  = strtolower(trim((string) ($p['status_pemesanan'] ?? '')));
+                            $statusBayar    = $p['status_pembayaran'] ?? 'Belum Bayar';
+                            $tagihanNominal = (float) ($p['total_tagihan'] ?? 0);
+                            if ($tagihanNominal <= 0) {
+                                $tagihanNominal = (float) ($p['total_moq'] ?? 0) * 25000;
+                            }
                             $tanggalRaw = $p['tanggal_pengiriman'] ?? '';
                             $tanggalPengiriman = $tanggalRaw && strtotime($tanggalRaw) !== false
                                 ? date('d M Y', strtotime($tanggalRaw))
@@ -465,10 +514,12 @@
                                 </div>
                                 <span class="status-badge <?= $getStatusClass($statusPesanan) ?>"><?= esc($getStatusLabel($statusPesanan)) ?></span>
                             </div>
+
                             <div class="pt-3">
                                 <div class="mobile-order-label">Konsorsium</div>
                                 <div class="mobile-order-value" style="font-size: 0.95rem; color: #10499D;"><?= esc($p['nama_konsorsium'] ?? '-') ?></div>
                             </div>
+
                             <div class="mobile-order-meta">
                                 <div class="mobile-meta-item">
                                     <div class="mobile-order-label">HS Code</div>
@@ -478,6 +529,30 @@
                                     <div class="mobile-order-label">Volume MOQ</div>
                                     <div class="mobile-order-value"><?= number_format((float) ($p['total_moq'] ?? 0)) ?> <span class="text-muted fw-normal" style="font-size: 0.75rem;">Kg</span></div>
                                 </div>
+
+                                <!-- INFO ESCROW MOBILE -->
+                                <div class="mobile-meta-item" style="grid-column: 1 / -1; background: #F8FAFC; padding: 0.75rem; border-radius: 8px; border: 1px solid #E2E8F0;">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="mobile-order-label mb-0">Total Tagihan Escrow</div>
+                                            <div class="fw-bold text-dark font-monospace mb-1" style="font-size: 0.85rem;">
+                                                USD <?= number_format($tagihanNominal, 2, '.', ',') ?>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <?php if ($statusBayar === 'Belum Bayar'): ?>
+                                                <button type="button" class="btn btn-sm btn-warning text-dark fw-bold px-2 py-1 shadow-sm" style="font-size: 0.75rem; border-radius: 6px;" data-bs-toggle="modal" data-bs-target="#modalBayar<?= $p['id_pesanan'] ?>">
+                                                    <i class="fas fa-wallet me-1"></i> Bayar
+                                                </button>
+                                            <?php elseif ($statusBayar === 'Menunggu Verifikasi'): ?>
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle py-1 px-2" style="font-size: 0.72rem;">Verifikasi</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle py-1 px-2" style="font-size: 0.72rem;">Lunas</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="mobile-meta-item" style="grid-column: 1 / -1;">
                                     <div class="mobile-order-label">Tanggal Pengiriman</div>
                                     <div class="mobile-order-value" style="color: #64748B;"><i class="far fa-calendar-alt me-1" aria-hidden="true"></i><?= esc($tanggalPengiriman) ?></div>
@@ -521,8 +596,190 @@
             <?php endif; ?>
         </div>
     </section>
+
+    <!-- MODAL PENYETORAN DANA REKENING BERSAMA (ESCROW) DENGAN AJAX VALIDASI -->
+    <?php foreach ($daftarPesanan as $p): ?>
+        <?php
+            $tagihanNominal = (float) ($p['total_tagihan'] ?? 0);
+            if ($tagihanNominal <= 0) {
+                $tagihanNominal = (float) ($p['total_moq'] ?? 0) * 2.50; // Fallback jika DB kosong
+            }
+        ?>
+        <div class="modal fade" id="modalBayar<?= $p['id_pesanan'] ?>" tabindex="-1" aria-labelledby="modalBayarLabel<?= $p['id_pesanan'] ?>" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 18px; overflow: hidden;">
+                    <div class="modal-header border-0 pb-0 pt-4 px-4">
+                        <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="modalBayarLabel<?= $p['id_pesanan'] ?>" style="font-size: 1.05rem;">
+                            <i class="fas fa-shield-halved text-primary"></i> Rekening Bersama Konsolidator
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    
+                    <form action="<?= base_url('buyer/pesanan/bayar') ?>" method="POST" id="formBayar<?= $p['id_pesanan'] ?>">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="id_pesanan" value="<?= $p['id_pesanan'] ?>">
+
+                        <div class="modal-body p-4">
+                            <!-- Box Nominal Tagihan USD -->
+                            <div class="p-3 mb-3 bg-light rounded-3 text-center border">
+                                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.72rem; letter-spacing: 0.05em;">Nominal Tagihan Kargo FCL</small>
+                                <h3 class="fw-bold text-primary mt-1 mb-1 font-monospace">USD <?= number_format($tagihanNominal, 2, '.', ',') ?></h3>
+                                <small class="text-muted">Total Volume: <?= number_format((float) ($p['total_moq'] ?? 0)) ?> Kg</small>
+                            </div>
+
+                            <!-- Penjelasan Escrow -->
+                            <div class="alert alert-info py-2 px-3 small border-0 mb-3" style="border-radius: 10px; background-color: #EBF5FF; color: #1E429F;">
+                                <i class="fas fa-info-circle me-1"></i> <strong>Perlindungan Escrow:</strong> Dana Anda aman ditampung oleh NusaChain dan baru diteruskan ke UMKM setelah kargo tiba di pelabuhan tujuan.
+                            </div>
+
+                            <!-- Detail Rekening Tujuan Valas -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted mb-1">Wire Transfer (USD Account)</label>
+                                <div class="p-2 border rounded bg-white fw-bold font-monospace text-dark d-flex justify-content-between align-items-center">
+                                    <span>Bank Mandiri SWIFT: <span class="text-primary">BMRIIJA</span></span>
+                                    <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.7rem;">a/n PT NusaChain</span>
+                                </div>
+                                <div class="small text-muted mt-1" style="font-size: 0.7rem;">A/C No: 144-00-USD-9384</div>
+                            </div>
+
+                            <!-- Input Tautan Bukti Transfer dengan AJAX Validator -->
+                            <div class="mb-2">
+                                <label for="bukti_bayar_<?= $p['id_pesanan'] ?>" class="form-label small fw-bold text-dark">
+                                    Tautan Bukti Transfer (Google Drive / OneDrive / Cloud) <span class="text-danger">*</span>
+                                </label>
+                                <div class="position-relative">
+                                    <input type="url" 
+                                           class="form-control input-bukti-bayar" 
+                                           id="bukti_bayar_<?= $p['id_pesanan'] ?>"
+                                           name="bukti_bayar" 
+                                           data-order-id="<?= $p['id_pesanan'] ?>"
+                                           placeholder="https://drive.google.com/file/d/..." 
+                                           value="<?= esc($p['bukti_bayar'] ?? '') ?>"
+                                           required 
+                                           autocomplete="off"
+                                           style="border-radius: 9px; font-size: 0.88rem;">
+                                </div>
+                                
+                                <div id="feedback_bayar_<?= $p['id_pesanan'] ?>" class="mt-1" style="font-size: 0.76rem; min-height: 18px;"></div>
+                                
+                                <div class="form-text mt-0" style="font-size: 0.74rem;">
+                                    Pastikan izin akses tautan diatur ke <em>"Siapa saja yang memiliki link"</em> (Akses Publik).
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                            <button type="button" class="btn btn-light fw-bold text-muted px-3" data-bs-dismiss="modal" style="border-radius: 9px;">Batal</button>
+                            <button type="submit" 
+                                    id="btn_submit_bayar_<?= $p['id_pesanan'] ?>" 
+                                    class="btn btn-primary fw-bold px-4" 
+                                    style="border-radius: 9px; background-color: var(--royal-blue); border-color: var(--royal-blue);"
+                                    <?= empty($p['bukti_bayar']) ? 'disabled' : '' ?>>
+                                <i class="fas fa-paper-plane me-1"></i> Kirim Bukti Transfer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    <?php endforeach; ?>
+
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Script Validasi AJAX Tautan Bukti Transfer -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const inputsBukti = document.querySelectorAll('.input-bukti-bayar');
+
+    inputsBukti.forEach(input => {
+        let timeout = null;
+        const orderId   = input.getAttribute('data-order-id');
+        const feedback  = document.getElementById('feedback_bayar_' + orderId);
+        const submitBtn = document.getElementById('btn_submit_bayar_' + orderId);
+
+        if (!feedback || !submitBtn) return;
+
+        input.addEventListener('input', function () {
+            clearTimeout(timeout);
+            const urlVal = this.value.trim();
+
+            if (!urlVal) {
+                feedback.innerHTML = '';
+                submitBtn.disabled = true;
+                return;
+            }
+
+            feedback.innerHTML = '<span class="text-primary"><i class="fas fa-spinner fa-spin me-1"></i> Memeriksa aksesibilitas tautan...</span>';
+            submitBtn.disabled = true;
+
+            timeout = setTimeout(() => {
+                validasiLinkBukti(urlVal, feedback, submitBtn);
+            }, 600);
+        });
+
+        input.addEventListener('blur', function () {
+            const urlVal = this.value.trim();
+            if (urlVal) {
+                validasiLinkBukti(urlVal, feedback, submitBtn);
+            }
+        });
+    });
+
+    function validasiLinkBukti(url, feedbackEl, btnEl) {
+        const csrfTokenName  = '<?= csrf_token() ?>';
+        const csrfTokenInput = document.querySelector(`input[name="${csrfTokenName}"]`);
+        const csrfHash       = csrfTokenInput ? csrfTokenInput.value : '';
+
+        const formData = new FormData();
+        formData.append('link_dokumen', url);
+        formData.append(csrfTokenName, csrfHash);
+
+        fetch('<?= base_url('auth/cek-dokumen') ?>', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.csrf_token) {
+                document.querySelectorAll(`input[name="${csrfTokenName}"]`).forEach(el => {
+                    el.value = data.csrf_token;
+                });
+            }
+
+            // Ambil pesan dari 'pesan' atau 'message' agar tidak pernah 'undefined'
+            const pesanRespon = data.pesan || data.message || (data.status === 'success' ? 'Tautan valid dan dapat diakses publik.' : 'Tautan tidak dapat diakses.');
+
+            if (data.status === 'success') {
+                feedbackEl.innerHTML = '<span class="text-success fw-semibold"><i class="fas fa-circle-check me-1"></i> ' + pesanRespon + '</span>';
+                btnEl.disabled = false;
+            } else {
+                feedbackEl.innerHTML = '<span class="text-danger fw-semibold"><i class="fas fa-circle-xmark me-1"></i> ' + pesanRespon + '</span>';
+                btnEl.disabled = true;
+            }
+        })
+        .catch(err => {
+            console.error('Error cek bukti:', err);
+            try {
+                const parsed = new URL(url);
+                if (['drive.google.com', 'onedrive.live.com', '1drv.ms', 'dropbox.com'].some(host => parsed.hostname.includes(host))) {
+                    feedbackEl.innerHTML = '<span class="text-success fw-semibold"><i class="fas fa-circle-check me-1"></i> Format tautan cloud valid.</span>';
+                    btnEl.disabled = false;
+                } else {
+                    feedbackEl.innerHTML = '<span class="text-warning fw-semibold"><i class="fas fa-triangle-exclamation me-1"></i> Disarankan menggunakan Google Drive / OneDrive.</span>';
+                    btnEl.disabled = false;
+                }
+            } catch (e) {
+                feedbackEl.innerHTML = '<span class="text-danger fw-semibold"><i class="fas fa-circle-xmark me-1"></i> Format URL tidak valid (diawali https://).</span>';
+                btnEl.disabled = true;
+            }
+        });
+    }
+});
+</script>
 </body>
 </html>

@@ -60,42 +60,66 @@ class Auth extends BaseController
 
     public function processRegister()
     {
+        // 1. Aturan validasi yang lebih komprehensif
+        $rules = [
+            'nama'             => [
+                'rules'  => 'required|max_length[255]',
+                'errors' => ['required' => 'Nama lengkap wajib diisi.']
+            ],
+            'email'            => [
+                'rules'  => 'required|valid_email|is_unique[users.email]',
+                'errors' => [
+                    'required'    => 'Alamat email wajib diisi.',
+                    'valid_email' => 'Format email tidak valid.',
+                    'is_unique'   => 'Alamat email ini sudah terdaftar. Silakan gunakan email lain.'
+                ]
+            ],
+            'password'         => [
+                'rules'  => 'required|min_length[8]',
+                'errors' => ['min_length' => 'Kata sandi minimal 8 karakter.']
+            ],
+            'role'             => [
+                'rules'  => 'required|in_list[UMKM,Buyer]',
+                'errors' => ['in_list' => 'Peran (Role) tidak valid.']
+            ],
+            'nomor_izin_usaha' => 'permit_empty|max_length[100]',
+            'dokumen_legal'    => [
+                'rules'  => 'required|valid_url',
+                'errors' => [
+                    'required'  => 'Tautan dokumen legalitas (Google Drive) wajib diisi.',
+                    'valid_url' => 'Format tautan dokumen tidak valid (harus berupa URL lengkap diawali https://).'
+                ]
+            ]
+        ];
+
+        if (! $this->validate($rules)) {
+            // Ambil semua pesan error dari validator, lalu gabungkan jadi satu kalimat
+            $errors = implode('<br>', $this->validator->getErrors());
+            return redirect()->back()->withInput()->with('error', $errors);
+        }
+
         $userModel = new UserModel();
         $role      = trim((string) $this->request->getPost('role'));
-        $email     = trim((string) $this->request->getPost('email'));
-
-        if (! in_array($role, ['UMKM', 'Buyer'], true)) {
-            return redirect()->back()->withInput()->with('error', 'Pilihan peran tidak valid.');
-        }
-
-        if ($userModel->where('email', $email)->first()) {
-            return redirect()->back()->withInput()->with('error', 'Alamat email sudah terdaftar.');
-        }
-
-        // Ambil dan validasi format tautan dokumen legalitas (URL Google Drive / Cloud)
-        $dokumenLegal = trim((string) $this->request->getPost('dokumen_legal'));
-        if (empty($dokumenLegal) || ! filter_var($dokumenLegal, FILTER_VALIDATE_URL)) {
-            return redirect()->back()->withInput()->with('error', 'Tautan dokumen legalitas wajib diisi dengan format URL yang valid (diawali https://).');
-        }
 
         $nomorIzin = ($role === 'UMKM') 
             ? trim((string) $this->request->getPost('nib'))
             : trim((string) $this->request->getPost('tax_id'));
 
+        // 2. Simpan Data ke Database
         $data = [
             'nama'              => trim((string) $this->request->getPost('nama')),
-            'email'             => $email,
-            'password'          => (string) $this->request->getPost('password'),
+            'email'             => trim((string) $this->request->getPost('email')),
+            'password'          => password_hash((string) $this->request->getPost('password'), PASSWORD_DEFAULT),
             'role'              => $role,
             'nomor_izin_usaha'  => $nomorIzin,
-            'dokumen_legal'     => $dokumenLegal, // Menyimpan teks URL langsung ke database
-            'negara_asal'       => trim((string) $this->request->getPost('negara_asal')),
-            'pelabuhan_tujuan'  => trim((string) $this->request->getPost('pelabuhan_tujuan')),
+            'dokumen_legal'     => trim((string) $this->request->getPost('dokumen_legal')),
+            'negara_asal'       => trim((string) $this->request->getPost('negara_asal') ?? ''),
+            'pelabuhan_tujuan'  => trim((string) $this->request->getPost('pelabuhan_tujuan') ?? ''),
             'status_verifikasi' => 'Pending',
-            'trust_score'       => 0,
+            'trust_score'       => ($role === 'UMKM') ? 50 : 0, // Inisialisasi awal Trust Score (UMKM modal awal 50)
         ];
 
-        $userModel->save($data);
+        $userModel->insert($data);
 
         return redirect()->to('/login')->with(
             'success', 
@@ -224,58 +248,90 @@ class Auth extends BaseController
     // Endpoint AJAX untuk validasi akses publik dokumen (Google Drive / URL Dokumen)
     public function cekLinkDokumen()
     {
-        $url = trim((string) $this->request->getPost('url'));
-
-        if (! filter_var($url, FILTER_VALIDATE_URL)) {
-            return $this->response->setJSON([
-                'status'  => 'invalid',
-                'message' => 'Format URL tidak valid. Sertakan https:// diawal tautan.'
+        if (! $this->request->isAJAX()) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'status'     => 'error',
+                'pesan'      => 'Permintaan tidak valid.',
+                'message'    => 'Permintaan tidak valid.',
+                'csrf_token' => csrf_hash(),
             ]);
         }
 
-        // Jalankan cURL untuk memeriksa apakah dokumen dapat diakses tanpa login
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_MAXREDIRS      => 6,
-            CURLOPT_TIMEOUT        => 8,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            CURLOPT_NOBODY         => true, // Cukup ambil header respon agar ringan dan cepat
-        ]);
+        $url = trim((string) $this->request->getPost('link_dokumen'));
 
-        curl_exec($ch);
+        if (empty($url) || ! filter_var($url, FILTER_VALIDATE_URL)) {
+            return $this->response->setJSON([
+                'status'     => 'error',
+                'pesan'      => 'Format URL tidak valid (wajib diawali https://).',
+                'message'    => 'Format URL tidak valid (wajib diawali https://).',
+                'csrf_token' => csrf_hash(),
+            ]);
+        }
+
+        // Validasi host cloud storage
+        $parsed = parse_url($url);
+        $host   = strtolower($parsed['host'] ?? '');
+        $allowedHosts = ['drive.google.com', 'onedrive.live.com', '1drv.ms', 'dropbox.com'];
+        $isValidHost  = false;
+
+        foreach ($allowedHosts as $allowed) {
+            if (str_ends_with($host, $allowed) || $host === $allowed) {
+                $isValidHost = true;
+                break;
+            }
+        }
+
+        if (! $isValidHost) {
+            return $this->response->setJSON([
+                'status'     => 'error',
+                'pesan'      => 'Tautan harus berasal dari Google Drive, OneDrive, atau Dropbox.',
+                'message'    => 'Tautan harus berasal dari Google Drive, OneDrive, atau Dropbox.',
+                'csrf_token' => csrf_hash(),
+            ]);
+        }
+
+        // Pengecekan via cURL yang ramah Google Drive & Localhost
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 7);
+        // Bypass sertifikat SSL untuk lingkungan lokal / XAMPP
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        // Header User-Agent agar tidak diblokir proteksi bot Google
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36');
+
+        $response     = curl_exec($ch);
         $httpCode     = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $effectiveUrl = (string) curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
-        $curlError    = curl_error($ch);
+        $effectiveUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
         curl_close($ch);
 
-        if ($curlError) {
+        // Jika tautan dialihkan ke halaman login akun, berarti izin akses masih privat
+        if (str_contains($effectiveUrl, 'accounts.google.com/ServiceLogin') || str_contains($effectiveUrl, 'accounts.google.com/v3/signin')) {
             return $this->response->setJSON([
-                'status'  => 'invalid',
-                'message' => 'Tautan tidak dapat dijangkau oleh server. Periksa kembali alamat URL.'
+                'status'     => 'error',
+                'pesan'      => 'Tautan masih dibatasi (Private). Ubah akses file ke "Siapa saja yang memiliki link".',
+                'message'    => 'Tautan masih dibatasi (Private). Ubah akses file ke "Siapa saja yang memiliki link".',
+                'csrf_token' => csrf_hash(),
             ]);
         }
 
-        // Jika Google Drive masih privat, tautan akan dialihkan ke halaman login akun Google
-        if (str_contains($effectiveUrl, 'accounts.google.com') || str_contains($effectiveUrl, 'ServiceLogin')) {
-            return $this->response->setJSON([
-                'status'  => 'private',
-                'message' => 'Tautan Google Drive masih bersifat privat (memerlukan login). Ubah izin akses menjadi "Siapa saja yang memiliki link" (Anyone with the link).'
-            ]);
-        }
-
+        // Tautan berhasil dijangkau dan berstatus publik
         if ($httpCode >= 200 && $httpCode < 400) {
             return $this->response->setJSON([
-                'status'  => 'valid',
-                'message' => 'Tautan publik valid! Dokumen dapat dibuka oleh Administrator.'
+                'status'     => 'success',
+                'pesan'      => 'Tautan Google Drive valid dan dapat diakses publik.',
+                'message'    => 'Tautan Google Drive valid dan dapat diakses publik.',
+                'csrf_token' => csrf_hash(),
             ]);
         }
 
         return $this->response->setJSON([
-            'status'  => 'private',
-            'message' => "Tautan mengembalikan status HTTP {$httpCode}. Pastikan berkas terbuka untuk umum."
+            'status'     => 'error',
+            'pesan'      => 'Pastikan link public dan aktif.',
+            'message'    => 'Pastikan link public dan aktif.',
+            'csrf_token' => csrf_hash(),
         ]);
     }
 }
