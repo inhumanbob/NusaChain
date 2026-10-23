@@ -31,6 +31,7 @@ class Filters extends BaseFilters
         'invalidchars'  => InvalidChars::class,
         'roleUmkm'      => \App\Filters\RoleUmkm::class,
         'roleBuyer'     => \App\Filters\RoleBuyer::class,
+        'roleAdmin'     => \App\Filters\RoleAdmin::class,
         'secureheaders' => SecureHeaders::class,
         'cors'          => Cors::class,
         'forcehttps'    => ForceHTTPS::class,

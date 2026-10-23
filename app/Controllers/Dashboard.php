@@ -20,36 +20,72 @@ class Dashboard extends BaseController
         $produkModel = new ProdukModel();
         $db          = \Config\Database::connect();
 
-        // 1. Ambil Profil UMKM dari database
+        // ==========================================
+        // 1. AMBIL DATA PROFIL & PRODUK UMKM
+        // ==========================================
         $user = $userModel->find($id_user);
-
-        // 2. Ambil seluruh produk milik UMKM ini
         $daftarProduk = $produkModel->where('id_user', $id_user)->findAll();
+        $totalProduk = count($daftarProduk);
 
-        // 3. Hitung ringkasan statistik produk
-        $totalProduk    = count($daftarProduk);
-        $totalKapasitas = 0;
-        foreach ($daftarProduk as $p) {
-            $totalKapasitas += (int) $p['kapasitas_bulanan'];
-        }
+        // ==========================================
+        // 2. AMBIL DATA KONSORSIUM GRUP
+        // ==========================================
+        $targetFcl = 20000; // Standar target 1 Kontainer FCL
 
-        // 4. Cek apakah UMKM sudah tergabung dalam suatu konsorsium
-        $konsorsiumUser = $db->table('Anggota_Konsorsium')
-            ->select('Anggota_Konsorsium.*, Konsorsium.nama_konsorsium, Konsorsium.target_hs_code, Konsorsium.status_kuota, Konsorsium.total_kapasitas_gabungan')
-            ->join('Konsorsium', 'Konsorsium.id_konsorsium = Anggota_Konsorsium.id_konsorsium')
-            ->where('Anggota_Konsorsium.id_user', $id_user)
+        $keanggotaan = $db->table('Anggota_Konsorsium')
+            ->where('id_user', $id_user)
             ->get()
             ->getRowArray();
 
-        // 5. Bungkus data untuk dikirim ke View
+        if ($keanggotaan) {
+            $id_konsorsium = $keanggotaan['id_konsorsium'];
+
+            $konsorsium = $db->table('Konsorsium')
+                ->where('id_konsorsium', $id_konsorsium)
+                ->get()
+                ->getRowArray();
+
+            $anggota = $db->table('Anggota_Konsorsium')
+                ->select('Anggota_Konsorsium.*, Users.nama as nama_umkm, Users.email')
+                ->join('Users', 'Users.id_user = Anggota_Konsorsium.id_user')
+                ->where('Anggota_Konsorsium.id_konsorsium', $id_konsorsium)
+                ->get()
+                ->getResultArray();
+
+            $totalAnggota   = count($anggota);
+            $totalKapasitas = (int) ($konsorsium['total_kapasitas_gabungan'] ?? 0);
+            $sisaKuota      = max(0, $targetFcl - $totalKapasitas);
+            $persentase     = $targetFcl > 0 ? min(100, round(($totalKapasitas / $targetFcl) * 100)) : 0;
+        } else {
+            // Fallback jika UMKM belum tergabung konsorsium manapun
+            $konsorsium = [
+                'nama_konsorsium' => 'Belum Tergabung Konsorsium',
+                'target_hs_code'  => '-',
+                'status_kuota'    => 'Terbuka'
+            ];
+            $totalAnggota   = 0;
+            $totalKapasitas = 0;
+            $sisaKuota      = $targetFcl;
+            $persentase     = 0;
+            $anggota        = [];
+        }
+
+        // ==========================================
+        // 3. BUNGKUS DAN KIRIM KE VIEW
+        // ==========================================
         $data = [
             'user'           => $user,
             'daftarProduk'   => $daftarProduk,
             'totalProduk'    => $totalProduk,
+            'konsorsium'     => $konsorsium,
+            'totalAnggota'   => $totalAnggota,
             'totalKapasitas' => $totalKapasitas,
-            'konsorsium'     => $konsorsiumUser,
+            'targetFcl'      => $targetFcl,
+            'sisaKuota'      => $sisaKuota,
+            'persentase'     => $persentase,
+            'anggota'        => $anggota
         ];
 
-        return view('umkm/dashboard_grup', $data);
+        return view('umkm/dashboard', $data);
     }
 }

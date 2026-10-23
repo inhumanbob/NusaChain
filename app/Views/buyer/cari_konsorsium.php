@@ -3,64 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#10499D">
     <title>Katalog Konsorsium Siap Ekspor - NusaChain</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="icon" href="<?= base_url('assets/img/icon.png') ?>" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --royal-blue: #10499D;
+            --deep-blue: #0B4599;
+            --white: #FFFFFF;
+            --ice-blue: #F3F6FB;
+            --slate: #334155;
+            --muted: #64748B;
+            --border: #E2E8F0;
+            --shadow: 0 8px 26px rgba(15, 41, 77, 0.06);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+            font-family: 'Poppins', sans-serif;
+            color: var(--slate);
+            background: var(--ice-blue);
+        }
+
+        body { overflow-x: hidden; }
+
+        .page-shell { padding-top: 2rem; padding-bottom: 3rem; }
+
+        .page-hero {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+            padding: clamp(1.5rem, 3.5vw, 2.5rem);
+            margin-bottom: 2rem;
+            color: var(--white);
+            background: linear-gradient(115deg, var(--deep-blue) 0%, var(--royal-blue) 65%, #2674C9 100%);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 20px;
+            box-shadow: 0 12px 28px rgba(16, 73, 157, 0.16);
+        }
+
+        .page-hero::after {
+            position: absolute;
+            right: -46px;
+            bottom: -118px;
+            width: 280px;
+            height: 280px;
+            content: '';
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-content, .hero-action { position: relative; z-index: 1; }
+
+        .page-title { margin: 0 0 .5rem; color: var(--white); font-size: clamp(1.55rem, 2.8vw, 2.05rem); font-weight: 700; letter-spacing: -.035em; }
+        .page-subtitle { max-width: 690px; margin: 0; color: rgba(255, 255, 255, 0.84); font-size: .9rem; line-height: 1.7; }
+
+        .btn-outline-hero {
+            display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 44px; padding: .68rem 1rem;
+            color: var(--royal-blue); background: #FFFFFF; border: 1px solid #FFFFFF; border-radius: 9px; font-size: .86rem; font-weight: 600;
+            text-decoration: none; white-space: nowrap; transition: all .2s ease;
+        }
+        .btn-outline-hero:hover { color: var(--deep-blue); background: #EAF2FF; border-color: #EAF2FF; }
+
+        .btn-utama {
+            display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 48px; padding: .7rem 1.2rem;
+            color: var(--white) !important; background: var(--royal-blue) !important; border: 1px solid var(--royal-blue) !important;
+            border-radius: 10px; font-size: .88rem; font-weight: 600; text-decoration: none; transition: all .2s ease;
+        }
+        .btn-utama:hover, .btn-utama:focus-visible { background: var(--deep-blue) !important; border-color: var(--deep-blue) !important; transform: translateY(-1px); box-shadow: 0 5px 14px rgba(16,73,157,.18); }
+
+        .content-card { background: #FFFFFF; border: 1px solid rgba(226, 232, 240, 0.9); border-radius: 17px; box-shadow: var(--shadow); overflow: hidden; }
+        
+        .search-card { padding: 22px; margin-bottom: 28px; }
+        .search-label { display: block; margin: 0 0 8px 4px; color: #334155; font-size: .85rem; font-weight: 600; }
+        .search-input-wrap { position: relative; }
+        .search-input-wrap .search-icon { position: absolute; top: 50%; left: 16px; z-index: 2; color: #94A3B8; transform: translateY(-50%); }
+        .form-control-custom { width: 100%; min-height: 48px; padding: 11px 16px 11px 44px; color: #334155; background: #FAFCFF; border: 1px solid #D7E0EC; border-radius: 10px; font-size: .9rem; font-family: 'Poppins', sans-serif; transition: all .2s ease; }
+        .form-control-custom:focus { outline: 0; background: #FFFFFF; border-color: var(--royal-blue); box-shadow: 0 0 0 3px rgba(16, 73, 157, .12); }
+        
+        .btn-outline-blue { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; width: 48px; color: var(--royal-blue); background: var(--white); border: 1px solid #CBD5E1; border-radius: 10px; font-weight: 600; transition: all .2s ease; }
+        .btn-outline-blue:hover, .btn-outline-blue:focus { background: #EAF2FF; border-color: var(--royal-blue); color: var(--deep-blue); }
+
+        .section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 1.5rem 0 1rem; }
+        .section-title { margin: 0; color: #0F172A; font-size: 1.1rem; font-weight: 700; }
+        .results-count { color: var(--royal-blue); font-size: .8rem; font-weight: 600; background: #EAF2FF; padding: 4px 12px; border-radius: 50px; white-space: nowrap; }
+
+        .consortium-card {
+            height: 100%; display: flex; flex-direction: column; background: var(--white); 
+            border: 1px solid #E8EDF5; border-radius: 15px; box-shadow: var(--shadow); 
+            transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        }
+        .consortium-card:hover { transform: translateY(-4px); border-color: #C5D5EB; box-shadow: 0 14px 32px rgba(15, 23, 42, .08); }
+        .consortium-card-body { display: flex; flex-direction: column; padding: 22px; flex-grow: 1; }
+
+        /* BADGE STATUS DAN HS CODE KEMBALI */
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+            padding: 6px 12px; margin-bottom: 14px; color: #166534; background: #DCFCE7; 
+            border: 1px solid #BBF7D0; border-radius: 50px; font-size: .75rem; font-weight: 700;
+        }
+        .hs-badge {
+            display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+            color: #475569; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px;
+            font-size: .78rem; font-weight: 600; font-family: monospace; white-space: nowrap;
+        }
+
+        .consortium-title { margin: 0 0 12px; color: #0F172A; font-size: 1.15rem; line-height: 1.4; font-weight: 700; }
+        
+        .card-divider { margin: 20px 0 16px; border: 0; border-top: 1px solid #EEF2F7; opacity: 1; }
+        
+        .volume-label { color: var(--muted); font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .volume-value { color: var(--royal-blue); font-size: 1.1rem; font-weight: 800; white-space: nowrap; }
+
+        .card-action { margin-top: auto; padding-top: 20px; }
+        .card-action .btn { width: 100%; min-height: 46px; }
+
+        .empty-state { padding: clamp(40px, 6vw, 60px) 22px; text-align: center; }
+        .empty-icon { display: inline-flex; align-items: center; justify-content: center; width: 70px; height: 70px; margin-bottom: 18px; color: var(--royal-blue); background: var(--ice-blue); border-radius: 20px; font-size: 1.65rem; }
+        .empty-state h3 { color: #0F172A; font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; }
+        .empty-state p { max-width: 560px; margin: 0 auto 24px; color: var(--muted); font-size: .88rem; line-height: 1.7; }
+
+        @media (max-width: 991.98px) { .page-hero { align-items: flex-start; flex-direction: column; } .hero-action, .hero-action .btn, .hero-action a { width: 100%; } }
+        @media (max-width: 767.98px) {
+            .page-shell { padding-top: 1.25rem; padding-bottom: 2rem; }
+            .page-hero { padding: 23px 20px; margin-bottom: 1.15rem; border-radius: 16px; }
+            .search-card { padding: 18px; margin-bottom: 24px; }
+            .section-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
+            .consortium-card-body { padding: 18px; }
+            .volume-value { font-size: 1rem; }
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-0">Katalog Konsorsium Siap Ekspor</h2>
-            <p class="text-muted mb-0">Daftar konsorsium UMKM yang kuota kontainernya sudah terpenuhi (FCL).</p>
+<?= $this->include('layout/navbar') ?>
+<?= $this->include('layout/flash_toast') ?>
+
+<main class="container page-shell">
+
+    <section class="page-hero" aria-labelledby="page-title">
+        <div class="hero-content">
+            <h1 class="page-title" id="page-title">Katalog Konsorsium Siap Ekspor</h1>
+            <p class="page-subtitle">Temukan konsorsium UMKM dengan kuota kontainer yang telah terpenuhi (FCL), lalu ajukan pesanan ekspor sesuai kebutuhan Anda.</p>
         </div>
-        <!-- Ubah href="/buyer" menjadi href="/buyer/dashboard" -->
-        <a href="/buyer/dashboard" class="btn btn-outline-secondary">Kembali ke Dasbor</a>
-    </div>
+        <div class="hero-action">
+            <a href="<?= base_url('buyer/dashboard') ?>" class="btn-outline-hero">
+                <i class="fas fa-arrow-left" aria-hidden="true"></i>Kembali ke Dasbor
+            </a>
+        </div>
+    </section>
 
-    <!-- Pencarian berdasarkan HS Code -->
-    <div class="card p-3 mb-4 shadow-sm border-0">
-        <form method="get" action="/buyer/cari" class="row g-2">
-            <div class="col-md-9">
-                <input type="text" name="hs_code" class="form-control" placeholder="Cari berdasarkan HS Code (contoh: 6204)..." value="<?= esc($keyword ?? '') ?>">
+    <section class="content-card search-card" aria-label="Pencarian konsorsium">
+        <form method="get" action="<?= base_url('buyer/cari') ?>" class="row g-3 align-items-end">
+            <div class="col-12 col-md-8 col-lg-9">
+                <label for="hs_code" class="search-label">Pencarian Spesifik HS Code (Harmonized System)</label>
+                <div class="search-input-wrap">
+                    <i class="fas fa-search search-icon" aria-hidden="true"></i>
+                    <input type="text" id="hs_code" name="hs_code" class="form-control form-control-custom"
+                           placeholder=""
+                           value="<?= esc($keyword ?? '') ?>" autocomplete="off">
+                </div>
             </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary w-100">Filter Pencarian</button>
+            <div class="col-12 col-md-4 col-lg-3 d-flex gap-2">
+                <button type="submit" class="btn btn-utama flex-grow-1">
+                    <i class="fas fa-filter me-2" aria-hidden="true"></i>Terapkan Filter
+                </button>
+                <?php if (!empty($keyword)): ?>
+                    <a href="<?= base_url('buyer/cari') ?>" class="btn btn-outline-blue flex-shrink-0" aria-label="Hapus filter" title="Hapus Filter">
+                        <i class="fas fa-xmark"></i>
+                    </a>
+                <?php endif; ?>
             </div>
         </form>
-    </div>
+    </section>
 
-    <!-- Grid Konsorsium Siap Ekspor -->
-    <div class="row g-4">
-        <?php if (!empty($daftarKonsorsium)): ?>
-            <?php foreach ($daftarKonsorsium as $k): ?>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body">
-                            <span class="badge bg-success mb-2">Siap Ekspor (FCL)</span>
-                            <h5 class="card-title fw-bold"><?= esc($k['nama_konsorsium']) ?></h5>
-                            <p class="text-muted small mb-2">HS Code Target: <strong><?= esc($k['target_hs_code']) ?></strong></p>
-                            <hr class="my-2">
-                            <div class="d-flex justify-content-between mb-3 small">
-                                <span>Volume Terkumpul:</span>
-                                <strong class="text-primary"><?= number_format($k['total_kapasitas_gabungan']) ?> Unit</strong>
+    <section aria-labelledby="consortium-list-title">
+        <div class="section-heading">
+            <div>
+                <h2 id="consortium-list-title" class="section-title"><i class="fas fa-boxes-stacked me-2 text-primary"></i>Pilihan Konsorsium Tersedia</h2>
+            </div>
+            <?php if (!empty($daftarKonsorsium)): ?>
+                <span class="results-count"><i class="fas fa-hashtag me-1"></i><?= count($daftarKonsorsium) ?> Konsorsium</span>
+            <?php endif; ?>
+        </div>
+
+        <div class="row g-3 g-lg-4">
+            <?php if (!empty($daftarKonsorsium)): ?>
+                <?php foreach ($daftarKonsorsium as $k): ?>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <article class="consortium-card">
+                            <div class="consortium-card-body">
+                                <span class="status-badge"><i class="fas fa-circle-check"></i> Siap Ekspor (FCL)</span>
+                                <h3 class="consortium-title"><?= esc($k['nama_konsorsium']) ?></h3>
+                                
+                                <div>
+                                    <span class="hs-badge" title="Target HS Code">
+                                        <i class="fas fa-barcode text-muted"></i> <?= esc($k['target_hs_code']) ?>
+                                    </span>
+                                </div>
+
+                                <hr class="card-divider">
+
+                                <div class="d-flex align-items-end justify-content-between gap-3">
+                                    <div>
+                                        <div class="volume-label">Total Kapasitas</div>
+                                    </div>
+                                    <div class="volume-value"><?= number_format((float) ($k['total_kapasitas_gabungan'] ?? 0), 0, ',', '.') ?> <span class="text-muted fw-normal" style="font-size: 0.85rem;">Unit</span></div>
+                                </div>
+
+                                <div class="card-action">
+                                    <a href="<?= base_url('buyer/pesan/' . $k['id_konsorsium']) ?>" class="btn btn-utama w-100">
+                                        <i class="fas fa-cart-shopping me-2" aria-hidden="true"></i>Buat Pesanan Ekspor
+                                    </a>
+                                </div>
                             </div>
-                            <a href="/buyer/pesan/<?= $k['id_konsorsium'] ?>" class="btn btn-danger w-100 fw-semibold">
-                                Buat Pesanan Ekspor
+                        </article>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-12">
+                    <div class="content-card empty-state">
+                        <span class="empty-icon"><i class="fas fa-box-open"></i></span>
+                        <h3>Tidak ada konsorsium yang ditemukan</h3>
+                        <p>Tidak ditemukan konsorsium dengan status FCL yang sesuai dengan pencarian Anda. Coba periksa kembali HS Code atau hapus filter pencarian.</p>
+                        <?php if (!empty($keyword)): ?>
+                            <a href="<?= base_url('buyer/cari') ?>" class="btn-utama mt-2" style="width: auto;">
+                                <i class="fas fa-rotate-left me-2" aria-hidden="true"></i>Tampilkan Semua Konsorsium
                             </a>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <div class="col-12">
-                <div class="alert alert-info text-center py-4">
-                    Belum ada grup konsorsium dengan status siap ekspor yang sesuai kriteria pencarian.
-                </div>
-            </div>
-        <?php endif; ?>
-    </div>
-</div>
+            <?php endif; ?>
+        </div>
+    </section>
 
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

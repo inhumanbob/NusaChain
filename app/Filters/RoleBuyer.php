@@ -10,10 +10,17 @@ class RoleBuyer implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
-        if (!session()->get('isLoggedIn') || session()->get('role') !== 'Buyer') {
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/login')->with('error', 'Silakan login terlebih dahulu.');
+        }
+
+        if (strtolower(session()->get('role')) !== 'buyer') {
             return redirect()->to('/login')->with('error', 'Akses ditolak. Halaman ini khusus Buyer.');
         }
     }
 
-    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null) {}
+    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
+    {
+        // Jangan diisi
+    }
 }

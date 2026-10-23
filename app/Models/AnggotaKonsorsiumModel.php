@@ -13,6 +13,7 @@ class AnggotaKonsorsiumModel extends Model
     protected $allowedFields    = [
         'id_konsorsium',
         'id_user',
+        'id_produk',
         'kontribusi_kapasitas',
         'tanggal_bergabung',
     ];
